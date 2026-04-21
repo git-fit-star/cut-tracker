@@ -247,40 +247,17 @@ function FoodPicker({library, onAddAll, onClose}) {
     if (!dbQ.trim()) return;
     setDbLoading(true); setDbError(null); setDbResults([]);
     try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 600,
-          system: "You are a nutrition database. You ONLY output raw JSON arrays. No markdown, no backticks, no explanation. Just the JSON array starting with [ and ending with ].",
-          messages: [{
-            role: "user",
-            content: `Nutrition data for: ${dbQ}\n\nReturn a JSON array of up to 5 items:\n[{"name":"...","serving":"...","cal":0,"p":0,"c":0,"f":0}]\nAll numbers must be integers. Include variations if relevant.`
-          }]
-        })
-      });
+      const resp = await fetch(`/api/food-search?q=${encodeURIComponent(dbQ)}`);
+      if (!resp.ok) throw new Error("Search request failed");
       const data = await resp.json();
-      if (data.error) throw new Error(data.error.message);
-      const raw = (data.content || []).map(b => b.text || "").join("").trim();
-      // find the array wherever it appears
-      const start = raw.indexOf("[");
-      const end   = raw.lastIndexOf("]");
-      if (start === -1 || end === -1) throw new Error("No data returned");
-      const parsed = JSON.parse(raw.slice(start, end + 1));
-      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Empty results");
-      setDbResults(parsed.map((item, i) => ({
-        id:  "ai_" + Date.now() + i,
-        cat: "AI Lookup",
-        name: String(item.name || "Unknown"),
-        serving: String(item.serving || "1 serving"),
-        cal: Math.abs(Math.round(+item.cal || 0)),
-        p:   Math.abs(Math.round(+item.p   || 0)),
-        c:   Math.abs(Math.round(+item.c   || 0)),
-        f:   Math.abs(Math.round(+item.f   || 0)),
-      })).filter(item => item.cal > 0));
+      if (data.error) throw new Error(data.error);
+      if (!data.foods || data.foods.length === 0) {
+        setDbError("No results found — try different keywords.");
+        setDbLoading(false); return;
+      }
+      setDbResults(data.foods);
     } catch (e) {
-      setDbError("Search failed — try again or use Custom Entry to log manually.");
+      setDbError("Search failed — try again or use Custom Entry.");
       console.error(e);
     }
     setDbLoading(false);
