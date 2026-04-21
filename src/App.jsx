@@ -677,7 +677,6 @@ function PinScreen({ onUnlock }) {
 
 export default function CutTracker() {
   const [unlocked, setUnlocked] = useState(!!sessionStorage.getItem("cut-unlocked"));
-  if (!unlocked) return <PinScreen onUnlock={() => setUnlocked(true)} />;
   const [tab, setTab]             = useState("daily");
   const [activeDay, setActiveDay] = useState(todayStr());
   const [dailyLog, setDailyLog]   = useState({});
@@ -762,6 +761,8 @@ export default function CutTracker() {
   const tt = {contentStyle:{background:"#fff",border:"1px solid #E8E8E0",borderRadius:8,fontSize:12,boxShadow:"0 2px 8px rgba(0,0,0,0.07)"}};
 
   const TABS = [["daily","Daily Log"],["library","My Foods"],["trends","Trends"],["check-in","Check-In"]];
+
+  if (!unlocked) return <PinScreen onUnlock={() => setUnlocked(true)} />;
 
   return (
     <div style={{minHeight:"100vh",background:"#F5F5F0",color:"#1a1a1a",fontFamily:"'DM Sans',sans-serif",paddingBottom:60}}>
