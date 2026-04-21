@@ -139,7 +139,6 @@ const SEED_FOODS = [
 ];
 
 // eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line no-unused-vars
 const ALL_CATS = [...new Set(SEED_FOODS.map(f => f.cat))];
 
 const MEAL_SLOTS = [
@@ -640,7 +639,68 @@ function LibraryManager({library, onSave}) {
 }
 
 // ── main app ──────────────────────────────────────────────────
+const CORRECT_PIN = "1935"; // ← change this to whatever PIN you want
+
+function PinScreen({ onUnlock }) {
+  const [pin, setPin] = useState("");
+  const [shake, setShake] = useState(false);
+
+  const tryPin = (p) => {
+    if (p === CORRECT_PIN) {
+      sessionStorage.setItem("cut-unlocked", "1");
+      onUnlock();
+    } else if (p.length === 4) {
+      setShake(true);
+      setTimeout(() => { setShake(false); setPin(""); }, 600);
+    }
+  };
+
+  const press = (d) => {
+    const next = pin + d;
+    setPin(next);
+    if (next.length === 4) tryPin(next);
+  };
+
+  const del = () => setPin(p => p.slice(0, -1));
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#F5F5F0", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", fontFamily:"'DM Sans',sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+      <div style={{ fontFamily:"'Bricolage Grotesque',sans-serif", fontWeight:800, fontSize:28, color:"#111", marginBottom:6 }}>
+        THE CUT<span style={{ color:"#16A34A" }}>.</span>
+      </div>
+      <div style={{ fontSize:12, color:"#bbb", letterSpacing:2, textTransform:"uppercase", fontFamily:"'DM Mono',monospace", marginBottom:40 }}>Enter PIN</div>
+
+      {/* dots */}
+      <div style={{ display:"flex", gap:16, marginBottom:40, animation: shake ? "shake 0.5s" : "none" }}>
+        {[0,1,2,3].map(i => (
+          <div key={i} style={{ width:16, height:16, borderRadius:"50%", background: pin.length > i ? "#16A34A" : "#E0E0D8", transition:"background 0.15s" }}/>
+        ))}
+      </div>
+
+      {/* keypad */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,72px)", gap:12 }}>
+        {[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map((d,i) => (
+          <button key={i} onClick={() => d === "⌫" ? del() : d !== "" ? press(String(d)) : null}
+            style={{
+              height:72, borderRadius:14, border:"1px solid #E8E8E0",
+              background: d === "" ? "transparent" : "#fff",
+              fontSize: d === "⌫" ? 20 : 24, fontWeight:600, color:"#111",
+              cursor: d === "" ? "default" : "pointer",
+              boxShadow: d === "" ? "none" : "0 1px 3px rgba(0,0,0,0.06)",
+              fontFamily:"'DM Mono',monospace",
+              visibility: d === "" ? "hidden" : "visible",
+            }}>{d}</button>
+        ))}
+      </div>
+      <style>{`@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }`}</style>
+    </div>
+  );
+}
+
 export default function CutTracker() {
+  const [unlocked, setUnlocked] = useState(!!sessionStorage.getItem("cut-unlocked"));
+  if (!unlocked) return <PinScreen onUnlock={() => setUnlocked(true)} />;
   const [tab, setTab]             = useState("daily");
   const [activeDay, setActiveDay] = useState(todayStr());
   const [dailyLog, setDailyLog]   = useState({});
