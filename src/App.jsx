@@ -139,6 +139,7 @@ const SEED_FOODS = [
 ];
 
 // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 const ALL_CATS = [...new Set(SEED_FOODS.map(f => f.cat))];
 
 const MEAL_SLOTS = [
