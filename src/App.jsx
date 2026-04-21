@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react"; // eslint-disable-line no-unused-vars
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, BarChart, Bar } from "recharts";
 import { loadDailyLog, saveDayEntry, loadCheckins, saveCheckin as dbSaveCheckin, loadLibrary, saveLibrary } from "./supabase";
 
@@ -138,6 +138,7 @@ const SEED_FOODS = [
   { id:"f174", cat:"Drinks",    name:"Protein Water / LMNT",        serving:"1 packet",  cal:10,  p:0,  c:2,  f:0  },
 ];
 
+// eslint-disable-next-line no-unused-vars
 const ALL_CATS = [...new Set(SEED_FOODS.map(f => f.cat))];
 
 const MEAL_SLOTS = [
@@ -668,7 +669,7 @@ export default function CutTracker() {
   useEffect(() => {
     if (checkins[activeWeek]) setWeekForm(checkins[activeWeek]);
     else setWeekForm({});
-  }, [activeWeek, loaded]);
+  }, [activeWeek, loaded, checkins]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const persistDaily = async (u) => {
     setDailyLog(u);
@@ -694,18 +695,6 @@ export default function CutTracker() {
   const setSlotItems = (slot,items) => {
     const day = dailyLog[activeDay]||{};
     persistDaily({...dailyLog,[activeDay]:{...day,meals:{...(day.meals||{}),[slot]:items}}});
-  };
-  // when new food added via picker, also save to library
-  const handleAddFood = (slot) => (food) => {
-    if (food.isNew) {
-      const {isNew,logId,qty,...libFood} = food;
-      const newLib = [...library, libFood];
-      persistLib(newLib);
-      setLibrary(newLib);
-    }
-    const day = dailyLog[activeDay]||{};
-    const prev = (day.meals||{})[slot]||[];
-    persistDaily({...dailyLog,[activeDay]:{...day,meals:{...(day.meals||{}),[slot]:[...prev,food]}}});
   };
 
   const curDay   = dailyLog[activeDay]||{};
